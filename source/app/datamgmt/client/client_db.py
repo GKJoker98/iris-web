@@ -45,12 +45,19 @@ def get_client_list(current_user_id: int = None,
         Client.client_id.label('customer_id'),
         Client.client_uuid.label('customer_uuid'),
         Client.description.label('customer_description'),
-        Client.sla.label('customer_sla')
+        Client.short.label('customer_short'),
+        Client.client_id_top.label('customer_id_top')
     ).filter(
         filter
     ).all()
-
-    output = [c._asdict() for c in client_list]
+    output = []
+    for c in client_list:
+        ctx = c._asdict()
+        if ctx["customer_id_top"]:
+            ctx["customer_top"] = Client.query.get(ctx["customer_id_top"]).name
+        else:
+            ctx["customer_top"] = ""
+        output.append(ctx)
 
     return output
 
@@ -66,12 +73,17 @@ def get_client_api(client_id: str) -> Client:
         Client.client_id.label('customer_id'),
         Client.client_uuid.label('customer_uuid'),
         Client.description.label('customer_description'),
-        Client.sla.label('customer_sla')
+        Client.short.label('customer_short'),
+        Client.client_id_top.label('customer_id_top')
     ).filter(Client.client_id == client_id).first()
 
     output = None
     if client:
         output = client._asdict()
+    if output["customer_id_top"]:
+        output["customer_top"] = Client.query.get(output["customer_id_top"]).name
+    else:
+        output["customer_top"] = ""
 
     return output
 
@@ -96,8 +108,9 @@ def get_client_cases(client_id: int):
 
 
 def create_client(data) -> Client:
-
     client_schema = CustomerSchema()
+    if "customer_customer" in data and type(data["customer_customer"]) == str:
+        data["customer_customer"] = None 
     client = client_schema.load(data)
 
     db.session.add(client)

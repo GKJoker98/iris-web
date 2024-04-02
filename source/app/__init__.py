@@ -95,6 +95,7 @@ app.jinja_env.autoescape = True
 
 app.config.from_object('app.configuration.Config')
 
+print(app.config)
 cache = Cache(app)
 
 SQLALCHEMY_ENGINE_OPTIONS = {

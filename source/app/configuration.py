@@ -20,6 +20,7 @@ import configparser
 import logging as log
 import os
 import ssl
+from dotenv import load_dotenv
 # --------- Configuration ---------
 # read the private configuration file
 from datetime import timedelta
@@ -32,7 +33,7 @@ import requests
 from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-
+load_dotenv()
 
 class IrisConfigException(Exception):
     pass
@@ -43,7 +44,7 @@ class IrisConfig(configparser.ConfigParser):
 
     def __init__(self):
         super(IrisConfig, self).__init__()
-
+        print(os.environ)
         # Azure Key Vault
         self.key_vault_name = self.load('AZURE', 'KEY_VAULT_NAME')
         if self.key_vault_name:

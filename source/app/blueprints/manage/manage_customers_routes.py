@@ -81,9 +81,8 @@ def manage_customers(caseid, url_redir):
 @manage_customers_blueprint.route('/manage/customers/list')
 @ac_api_requires(Permissions.customers_read, no_cid_required=True)
 def list_customers(caseid):
-    user_is_server_administrator = ac_current_user_has_permission(Permissions.server_administrator)
     client_list = get_client_list(current_user_id=current_user.id,
-                                  is_server_administrator=user_is_server_administrator)
+                                  is_server_administrator=True)
 
     return response_success("", data=client_list)
 
@@ -308,9 +307,13 @@ def view_customer_modal(client_id, caseid, url_redir):
 
     form.customer_name.render_kw = {'value': customer.name}
     form.customer_description.data = customer.description
-    form.customer_sla.data = customer.sla
+    form.customer_short.data = customer.short
+    form.customer_customer.data = customer.client_id_top
+    
+    customers = get_client_list(current_user_id=current_user.id,
+                                                is_server_administrator=True)
 
-    return render_template("modal_add_customer.html", form=form, customer=customer,
+    return render_template("modal_add_customer.html", form=form, customer=customer, customers=customers,
                            attributes=customer.custom_attributes)
 
 
@@ -346,7 +349,10 @@ def add_customers_modal(caseid, url_redir):
         return redirect(url_for('manage_customers.manage_customers', cid=caseid))
     form = AddCustomerForm()
     attributes = get_default_custom_attributes('client')
-    return render_template("modal_add_customer.html", form=form, customer=None, attributes=attributes)
+    
+    customers = get_client_list(current_user_id=current_user.id,
+                                                is_server_administrator=True)
+    return render_template("modal_add_customer.html", form=form, customer=None, customers=customers, attributes=attributes)
 
 
 @manage_customers_blueprint.route('/manage/customers/add', methods=['POST'])
