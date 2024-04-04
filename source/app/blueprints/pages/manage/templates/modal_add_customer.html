@@ -43,6 +43,7 @@
                                             </div>
                                             <select class="selectpicker form-control"
                                                   id="case_quick_customer" name="customer_customer">
+						<option value="" selected="selected"></option>
                                                 {% for cst in customers %}
 						<option value="{{ cst.customer_id }}"  {% if form.customer_customer.data == cst.customer_id %}selected{% endif %} class="badge-text">{{ cst.customer_name }}</option>
                                                 {% endfor %}
