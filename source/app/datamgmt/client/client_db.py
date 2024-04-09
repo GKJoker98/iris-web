@@ -62,6 +62,38 @@ def get_client_list(current_user_id: int = None,
     return output
 
 
+def get_contact_list(current_user_id: int = None,
+                    is_server_administrator: bool = False) -> List[dict]:
+    if not is_server_administrator:
+        filter = and_(
+            Client.client_id == UserClient.client_id,
+            UserClient.user_id == current_user_id
+        )
+    else:
+        filter = and_()
+
+    contact_list = Contact.query.with_entities(
+        Contact.contact_name.label('contact_name'),
+        Contact.id.label('contact_id'),
+        Contact.contact_uuid.label('contact_uuid'),
+        Contact.contact_role.label('contact_role'),
+        Contact.contact_email.label('contact_email'),
+        Contact.client_id.label('contact_client_id'),
+    ).filter(
+        filter
+    ).all()
+    output = []
+    for c in contact_list:
+        ctx = c._asdict()
+        if ctx["contact_client_id"]:
+            ctx["contact_client"] = Client.query.get(ctx["contact_client_id"]).name
+        else:
+            ctx["contact_client"] = ""
+        output.append(ctx)
+
+    return output
+
+
 def get_client(client_id: int) -> Client:
     client = Client.query.filter(Client.client_id == client_id).first()
     return client
