@@ -154,6 +154,8 @@ def run_post_init(development=False):
             log.info("Running DB migration")
 
             alembic_cfg = Config(file_='app/alembic.ini')
+            print(alembic_cfg)
+            print(app.config['SQLALCHEMY_DATABASE_URI'])
             alembic_cfg.set_main_option('sqlalchemy.url', app.config['SQLALCHEMY_DATABASE_URI'])
             command.upgrade(alembic_cfg, 'head')
 

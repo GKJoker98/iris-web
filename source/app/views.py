@@ -192,7 +192,6 @@ app.register_blueprint(api_v2_assets_blueprint)
 app.register_blueprint(api_v2_tasks_blueprint)
 
 try:
-
     run_post_init(development=app.config["DEVELOPMENT"])
 
 except Exception as e:

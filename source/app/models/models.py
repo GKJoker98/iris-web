@@ -138,7 +138,7 @@ class Client(db.Model):
     created_by = Column(ForeignKey('user.id'), nullable=True)
     last_update_date = Column(DateTime, server_default=func.now(), nullable=True)
     client_id_top = Column(ForeignKey('client.client_id'), nullable=True)
-    client = relationship('Client')
+    client = relationship('Client', remote_side=[client_id])
 
 
     custom_attributes = Column(JSON)
