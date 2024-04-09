@@ -19,6 +19,9 @@ import logging
 
 from app import app
 from app import socket_io
+from dotenv import load_dotenv
+
+load_dotenv()
 
 if __name__ != '__main__':
     gunicorn_logger = logging.getLogger('gunicorn.error')

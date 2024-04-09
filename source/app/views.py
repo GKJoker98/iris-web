@@ -113,7 +113,6 @@ app.register_blueprint(api_blueprint)
 app.register_blueprint(demo_blueprint)
 
 try:
-
     run_post_init(development=app.config["DEVELOPMENT"])
 
 except Exception as e:
