@@ -104,7 +104,8 @@ SQLALCHEMY_ENGINE_OPTIONS = {
     "json_deserializer": partial(json.loads, object_pairs_hook=collections.OrderedDict),
     "pool_pre_ping": True
 }
-
+print(dir(SQLALCHEMY_ENGINE_OPTIONS.get("json_deserializer")))
+print(SQLALCHEMY_ENGINE_OPTIONS.get("json_deserializer").__dict__)
 db = SQLAlchemy(app, engine_options=SQLALCHEMY_ENGINE_OPTIONS)  # flask-sqlalchemy
 
 bc = Bcrypt(app)  # flask-bcrypt
