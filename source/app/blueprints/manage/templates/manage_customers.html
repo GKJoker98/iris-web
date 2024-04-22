@@ -49,9 +49,15 @@
                                     onclick="refresh_customer_table(true);">
                                 Refresh
                             </button>
+                            <button type="button" class="btn btn-sm btn-dark float-right ml-2"
+                                    onclick="export_customers();">
+                                Export
+                            </button>
+
                             <button class="btn btn-sm btn-dark float-right ml-2" onclick="add_customer();">Add
                                 customer
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -100,6 +106,7 @@
 		</div><!-- /.modal-content -->
 	</div><!-- /.modal-dialog -->
 </div>
+<div class="modal-content" id="export_data">
 {% endif %}
 
 {% endblock content %}

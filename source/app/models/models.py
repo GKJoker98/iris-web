@@ -141,8 +141,8 @@ class Client(db.Model):
 
 
     custom_attributes = Column(JSON)
-    client_top = relationship('Client', overlaps="client")
-
+    #client_top = relationship('Client', backref=db.backref('top', remote_side=[client_id]))
+    children_orgs = relationship("Client", foreign_keys=[client_id_top], backref=db.backref("top_org", remote_side=[client_id]))
 
 class AssetsType(db.Model):
     __tablename__ = 'assets_type'

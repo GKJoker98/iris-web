@@ -1,0 +1,18 @@
+.contact-list-item-ISB {
+background: lightgreen
+}
+
+.contact-list-item-Ressort-ISB {
+background: lightblue
+}
+
+
+.contact-list-item-Ressort-ISB :hover {
+background-color:rgba(137, 196, 244,1);
+
+}
+
+
+.contact-list-item-ISB :hover {
+    background-color:rgb(80, 200, 120);
+}
