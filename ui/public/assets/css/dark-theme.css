@@ -998,3 +998,21 @@ table.dataTable.order-column.stripe tbody>tr.odd.selected>.sorting_1 {
 .timeline-t>.timeline-child>.timeline-odd-t {
     background-color: #353535;
 }
+
+
+.contact-list-item-Ressort-ISB {
+background: #00008B
+}
+
+
+.contact-list-item-Ressort-ISB :hover {
+background-color:#000065
+
+}
+.contact-list-item-ISB {
+background: #013220
+}
+
+.contact-list-item-ISB :hover {
+    background-color:#01281A;
+}
