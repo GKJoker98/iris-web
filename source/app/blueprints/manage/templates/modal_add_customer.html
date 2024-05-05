@@ -35,7 +35,12 @@
                                     <label for="description" class="mr-4">Description</label>
                                     {{ form.customer_description(class='form-control',  autocomplete="off") }}
                                 </div>
-                              <div class="row">
+
+                                <div class="form-group">
+                                    <label for="client_search_terms" class="mr-4">Search Terms</label>
+                                    {{ form.customer_search_terms(class='form-control',  autocomplete="off") }}
+                                </div>
+                                                             <div class="row">
                                     <div class="col-xs-12 col-12">
                                         <div class="input-group mb-2">
                                             <div class="input-group-prepend fix-label-item">
@@ -51,6 +56,7 @@
                                         </div>
                                     </div>
                             </div>
+                                </div>
                         </form>
                     </div>
                 </div>

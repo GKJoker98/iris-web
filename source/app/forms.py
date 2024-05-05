@@ -51,6 +51,7 @@ class AddCustomerForm(FlaskForm):
     customer_description = TextAreaField(u'Customer description', validators=[DataRequired()])
     customer_short = TextAreaField(u'Customer short', validators=[DataRequired()])
     customer_customer = SelectField(u'Superior customer', validators=[InputRequired()])
+    customer_search_terms = TextAreaField(u'Customer Search Terms', validators=[DataRequired()])
 
 
 class MultiCheckboxField(SelectMultipleField):

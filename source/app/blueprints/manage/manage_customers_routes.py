@@ -331,6 +331,7 @@ def view_customer_modal(client_id, caseid, url_redir):
     form.customer_name.render_kw = {'value': customer.name}
     form.customer_description.data = customer.description
     form.customer_short.data = customer.short
+    form.customer_search_terms.data = customer.client_search_terms
     form.customer_customer.data = customer.client_id_top
     
     customers = get_client_list(current_user_id=current_user.id,
