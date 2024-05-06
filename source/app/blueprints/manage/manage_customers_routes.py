@@ -122,9 +122,9 @@ def export_customers(caseid):
 
     return response_success(data=customer)
 
+#@ac_requires_client_access()
 @manage_customers_blueprint.route('/manage/customers/<int:client_id>/view', methods=['GET'])
 @ac_requires(Permissions.customers_read, no_cid_required=True)
-@ac_requires_client_access()
 def view_customer_page(client_id, caseid, url_redir):
     if url_redir:
         return redirect(url_for('manage_customers.manage_customers', cid=caseid))
@@ -232,9 +232,9 @@ def customer_add_contact(client_id, caseid):
     return response_success("Added successfully", data=contact_schema.dump(contact))
 
 
+#@ac_api_requires_client_access()
 @manage_customers_blueprint.route('/manage/customers/<int:client_id>/cases', methods=['GET'])
 @ac_api_requires(Permissions.customers_read, no_cid_required=True)
-@ac_api_requires_client_access()
 def get_customer_case_stats(client_id, caseid):
 
     cases = get_client_cases(client_id)
