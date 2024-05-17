@@ -110,16 +110,9 @@ def view_customer(client_id, caseid):
 
 @manage_customers_blueprint.route('/manage/customers/export', methods=['GET'])
 @ac_api_requires(Permissions.customers_read, no_cid_required=True)
-@ac_api_requires_client_access()
 def export_customers(caseid):
     customer = export_contacts(current_user_id=current_user.id,
                                                 is_server_administrator=True)
-
-    print(customer)
-
-
-    #customer['contacts'] = ContactSchema().dump(get_client_contacts(client_id), many=True)
-
     return response_success(data=customer)
 
 #@ac_requires_client_access()

@@ -149,7 +149,7 @@
                 <div class="card-body">
                     <div class="customer-list">
                         {% for contact in contacts %}
-                        <div class="contact-list-item {{ 'contact-list-item-Ressort-ISB' if 'Ressort-ISB' == contact.contact_role and 'Funktionspostfach' in contact.contact_name }}{{ 'contact-list-item-ISB' if 'ISB' == contact.contact_role and 'Funktionspostfach' in contact.contact_name }}">
+                        <div class="contact-list-item {{ 'contact-list-item-Ressort-ISB' if "Ressort-ISB" in contact.contact_role.replace(" ", "").split(",") and 'Funktionspostfach' in contact.contact_name }}{{ 'contact-list-item-ISB' if "ISB" in contact.contact_role.replace(" ", "").split(",") and 'Funktionspostfach' in contact.contact_name }}">
                             <div class="contact-list-detail">
                                 <span class="date float-right"><button class="btn btn-light btn-sm"
                                                                        onclick="edit_contact('{{ contact.id }}','{{ customer.customer_id }}');">Edit</button></span>
