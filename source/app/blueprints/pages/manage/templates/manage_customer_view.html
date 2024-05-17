@@ -110,8 +110,9 @@
                             <p>{{ customer.customer_name }}</p>
                         </div>
                         <div class="col-md-3 info-customer">
-                            <h5 class="sub"><b>Superior customer</b></h5>
+                            <h5 class="sub" id="top-customer-name" data-customer-id="{{customer.customer_id_top}}"><b>Superior customer</b></h5>
                             <a href="/manage/customers/{{ customer.customer_id_top }}/view">{{ customer.customer_top }}</a>
+                            <div id="additional-info"></div>
                         </div>
                         <div class="col-md-2 info-customer">
                             <h5 class="sub"><b>Customer Description</b></h5>
@@ -158,7 +159,7 @@
                                     <b>Role: </b>{{ contact.contact_role }}<br/>
                                     {% endif %}
                                     {% if contact.contact_email %}
-                                    <b>Email: </b>{{ contact.contact_email }}<br/>
+                                    <b>Email: </b><span class="copy-email">{{ contact.contact_email }}</span><br/>
                                     {% endif %}
                                     {% if contact.contact_work_phone %}
                                     <b>Work phone: </b>{{ contact.contact_work_phone }}<br/>

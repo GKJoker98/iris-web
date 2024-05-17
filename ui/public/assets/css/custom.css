@@ -6,13 +6,20 @@ background: lightgreen
 background: lightblue
 }
 
-
 .contact-list-item-Ressort-ISB :hover {
 background-color:rgba(137, 196, 244,1);
 
 }
 
-
 .contact-list-item-ISB :hover {
     background-color:rgb(80, 200, 120);
+}
+
+.copy-email:hover {
+    cursor: pointer;
+    background-color: rgba(245, 40, 145, 0.2);
+}
+
+.top-mail-paragraph {
+    margin-bottom: 0; /* Passen Sie diesen Wert an Ihre Bedürfnisse an */
 }

@@ -2,7 +2,44 @@ const preventFormDefaultBehaviourOnSubmit = (event) => {
     event.preventDefault();
     return false;
 };
+$(document).ready(function() {
+    var customerIdTop = $('#top-customer-name')[0].dataset.customerId
+    console.log(customerIdTop);
+    $.ajax({
+        url: '/manage/customers/' + customerIdTop,
+        type: 'GET',
+        success: function(data) {
+    var filteredContacts = data.data.contacts.filter(function(contact) {
+        return contact.contact_name === "Funktionspostfach" && contact.contact_role === "Ressort-ISB";
+    });
+    console.log(filteredContacts);
+    var contactsHTML = filteredContacts.map(function(contact) {
+        return '<b>Email: </b><span class="copy-email">' + contact.contact_email + '</span><br/>'
+    }).join('');
+    $('#additional-info').html(contactsHTML);
+                $('.copy-email').on('click', function() {
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val($(this).text().replace('Email: ', '')).select();
+                document.execCommand("copy");
+                $temp.remove();
+            });
 
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+$(document).ready(function() {
+    $('.copy-email').on('click', function() {
+        var $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val($(this).text()).select();
+        document.execCommand("copy");
+        $temp.remove();
+    });
+});
 function add_customer() {
     const url = 'customers/add/modal' + case_param();
     $('#modal_add_customer_content').load(url, function (response, status, xhr) {
