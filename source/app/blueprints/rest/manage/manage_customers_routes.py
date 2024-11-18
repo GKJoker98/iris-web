@@ -38,6 +38,7 @@ from app.datamgmt.client.client_db import get_client_cases
 from app.datamgmt.client.client_db import get_client_contact
 from app.datamgmt.client.client_db import get_client_contacts
 from app.datamgmt.client.client_db import get_client_list
+from app.datamgmt.client.client_db import get_contact_list
 from app.datamgmt.client.client_db import update_client
 from app.datamgmt.client.client_db import update_contact
 from app.datamgmt.exceptions.ElementExceptions import ElementInUseException
@@ -86,8 +87,15 @@ def list_customers():
     return response_success("", data=client_list)
 
 
+@manage_customers_rest_blueprint.route('/manage/contacts/list')
+@ac_api_requires(Permissions.customers_read, no_cid_required=True)
+def list_contacts(caseid):
+    client_list = get_contact_list(current_user_id=current_user.id,
+                                  is_server_administrator=True)
+
+    return response_success("", data=client_list)
 @manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>', methods=['GET'])
-@ac_api_requires(Permissions.customers_read)
+@ac_api_requires(Permissions.customers_read, no_cid_required=True)
 @ac_api_requires_client_access()
 def view_customer(client_id):
 
