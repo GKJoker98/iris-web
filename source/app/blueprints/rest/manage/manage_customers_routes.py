@@ -124,8 +124,61 @@ def export_customers(caseid):
 
     return response_success(data=customer)
 
+
+#@ac_requires_client_access()
+@manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/view', methods=['GET'])
+@ac_requires(Permissions.customers_read, no_cid_required=True)
+def view_customer_page(client_id, caseid, url_redir):
+    if url_redir:
+        return redirect(url_for('manage_customers.manage_customers', cid=caseid))
+
+    customer = get_client_api(client_id)
+    if not customer:
+        return page_not_found(None)
+
+    form = FlaskForm()
+    contacts = get_client_contacts(client_id)
+    contacts = ContactSchema().dump(contacts, many=True)
+
+    return render_template('manage_customer_view.html', customer=customer, form=form, contacts=contacts)
+
+
+@manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/contacts/add/modal', methods=['GET'])
+@ac_requires(Permissions.customers_write, no_cid_required=True)
+@ac_requires_client_access()
+def customer_add_contact_modal(client_id, caseid, url_redir):
+    if url_redir:
+        return redirect(url_for('manage_customers.manage_customers', cid=caseid))
+
+    form = ContactForm()
+
+    return render_template('modal_customer_add_contact.html', form=form, contact=None)
+
+
+@manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/contacts/<int:contact_id>/modal', methods=['GET'])
+@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires_client_access()
+def customer_edit_contact_modal(client_id, contact_id, caseid, url_redir):
+    if url_redir:
+        return redirect(url_for('manage_customers.manage_customers', cid=caseid))
+
+    contact = get_client_contact(client_id, contact_id)
+    if not contact:
+        return response_error(f"Invalid Contact ID {contact_id}")
+
+    form = ContactForm()
+    form.contact_name.render_kw = {'value': contact.contact_name}
+    form.contact_email.render_kw = {'value':  contact.contact_email}
+    form.contact_mobile_phone.render_kw = {'value': contact.contact_mobile_phone}
+    form.contact_work_phone.render_kw = {'value': contact.contact_work_phone}
+    form.contact_note.data = contact.contact_note
+    form.contact_role.render_kw = {'value':  contact.contact_role}
+
+    return render_template('modal_customer_add_contact.html', form=form, contact=contact)
+
+
 @manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/contacts/<int:contact_id>/update', methods=['POST'])
-@ac_api_requires(Permissions.customers_write)
+@ac_api_requires(Permissions.customers_write, no_cid_required=True)
 @ac_api_requires_client_access()
 def customer_update_contact(client_id, contact_id):
 
@@ -182,11 +235,11 @@ def customer_add_contact(client_id):
     return response_success("Added successfully", data=contact_schema.dump(contact))
 
 
-@manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/cases', methods=['GET'])
-@ac_api_requires(Permissions.customers_read)
-@ac_api_requires_client_access()
-def get_customer_case_stats(client_id):
 
+#@ac_api_requires_client_access()
+@manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/cases', methods=['GET'])
+@ac_api_requires(Permissions.customers_read, no_cid_required=True)
+def get_customer_case_stats(client_id, caseid):
     cases = get_client_cases(client_id)
     cases_list = []
 

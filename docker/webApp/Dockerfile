@@ -39,7 +39,8 @@ RUN apt-get update
 RUN python -m venv /opt/venv
 # Make sure we use the virtualenv:
 ENV PATH="/opt/venv/bin:$PATH"
-
+ENV http_proxy http://www.proxy.bybn.de:80
+ENV https_proxy http://www.proxy.bybn.de:80
 COPY source/dependencies /dependencies
 COPY source/requirements.txt /
 
@@ -51,6 +52,8 @@ RUN pip3 install -r requirements.txt
 FROM python:3.9 AS iriswebapp
 ENV PYTHONUNBUFFERED=1 DOCKERIZED=1
 
+ENV http_proxy http://www.proxy.bybn.de:80
+ENV https_proxy http://www.proxy.bybn.de:80
 COPY --from=compile-image /opt/venv /opt/venv
 
 # Make sure we use the virtualenv:
