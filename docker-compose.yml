@@ -45,6 +45,7 @@ services:
       service: nginx
     image: ${NGINX_IMAGE_NAME:-ghcr.io/dfir-iris/iriswebapp_nginx}:${NGINX_IMAGE_TAG:-v2.4.14}
 
+
 volumes:
   iris-downloads:
   user_templates:

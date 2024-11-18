@@ -59,8 +59,10 @@ from app.util import page_not_found
 from app.util import response_error
 from app.util import response_success
 
-from source.app.datamgmt.client.client_db import export_contacts
+
+from app.datamgmt.client.client_db import export_contacts
 manage_customers_rest_blueprint = Blueprint('manage_customers_rest', __name__)
+
 
 
 
