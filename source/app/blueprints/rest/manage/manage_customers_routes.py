@@ -59,7 +59,10 @@ from app.util import page_not_found
 from app.util import response_error
 from app.util import response_success
 
+from source.app.datamgmt.client.client_db import export_contacts
 manage_customers_rest_blueprint = Blueprint('manage_customers_rest', __name__)
+
+
 
 
 
@@ -105,6 +108,19 @@ def view_customer(client_id):
 
     return response_success(data=customer)
 
+@manage_customers_rest_blueprint.route('/manage/customers/export', methods=['GET'])
+@ac_api_requires(Permissions.customers_read, no_cid_required=True)
+@ac_api_requires_client_access()
+def export_customers(caseid):
+    customer = export_contacts(current_user_id=current_user.id,
+                                                is_server_administrator=True)
+
+    print(customer)
+
+
+    #customer['contacts'] = ContactSchema().dump(get_client_contacts(client_id), many=True)
+
+    return response_success(data=customer)
 
 @manage_customers_rest_blueprint.route('/manage/customers/<int:client_id>/contacts/<int:contact_id>/update', methods=['POST'])
 @ac_api_requires(Permissions.customers_write)

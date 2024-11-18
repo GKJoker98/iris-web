@@ -39,7 +39,6 @@ def get_client_list(current_user_id: int = None,
         )
     else:
         filter = and_()
-
     client_list = Client.query.with_entities(
         Client.name.label('customer_name'),
         Client.client_id.label('customer_id'),
@@ -64,7 +63,7 @@ def get_client_list(current_user_id: int = None,
 
 
 def get_contact_list(current_user_id: int = None,
-                    is_server_administrator: bool = False) -> List[dict]:
+                     is_server_administrator: bool = False) -> List[dict]:
     if not is_server_administrator:
         filter = and_(
             Client.client_id == UserClient.client_id,
@@ -139,6 +138,38 @@ def get_client_cases(client_id: int):
     ).all()
 
     return cases_list
+
+
+def add_nested_contact(org, contact_list):
+    template = {
+           "org_name": org.name,
+           "org_short": org.short
+    }
+    if org.top_org:
+        template["org_top"] = org.top_org.name
+        template["org_top_short"] = org.top_org.short
+    contacts = get_client_contacts(org.client_id)
+    for contact in contacts:
+        ctx = dict(template)
+        ctx["contact_role"] = contact.contact_role
+        ctx["contact_email"] = contact.contact_email
+        ctx["contact_note"] = contact.contact_note
+        ctx["contact_work_phone"] = contact.contact_work_phone
+        ctx["contact_mobile_phone"] = contact.contact_mobile_phone
+        ctx["contact_name"] = contact.contact_name
+        contact_list.append(ctx)
+    for e in org.children_orgs:
+        add_nested_contact(e, contact_list)
+
+
+def export_contacts(current_user_id: int = None,
+                    is_server_administrator: bool = False):
+    orgs = Client.query.filter(Client.client_id_top == None).all()
+    ctx = []
+    for e in orgs:
+        add_nested_contact(e, ctx)
+    return ctx
+
 
 
 def create_client(data) -> Client:

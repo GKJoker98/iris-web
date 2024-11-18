@@ -101,6 +101,54 @@ $(document).ready(function() {
     );
 });
 
+function convertToCSV(data) {
+    const columnNames = ['Organisation', 'Kurzbezeichnung', 'Top-Organisation', 'Notiz', 'E-Mail',  'Telefon', 'Mobil', 'Rolle', 'Name'];
+    const rows = data.map(entry => {
+        return [
+            entry.org_name,
+            entry.org_short,
+            entry.org_top,
+            entry.contact_note,
+            entry.contact_email,
+            entry.contact_work_phone,
+            entry.contact_mobile_phone,
+            entry.contact_role,
+            entry.contact_name
+        ].join(';');
+    });
+    const header = columnNames.join(';') + '\n';
+    return '\ufeff' + header + rows.join('\n');
+
+}
+function downloadCSV(csvData) {
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'contact_data.csv';
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 0);
+}
+function export_customers() {
+    const url = 'customers/export';
+    $.get(url, function (response, status, xhr) {
+        if (status !== "success") {
+             ajax_notify_error(xhr, url);
+             return false;
+        }
+        const csvData = convertToCSV(response.data)
+        downloadCSV(csvData)
+
+    });
+
+}
+
 function refresh_customer_table(do_notify) {
     $('#customers_table').DataTable().ajax.reload();
     if (do_notify !== undefined) {
