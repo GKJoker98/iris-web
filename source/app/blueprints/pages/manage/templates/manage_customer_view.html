@@ -139,6 +139,11 @@
                         <div class="col-12">
                             <div class="row">
                                 <h3><strong><i class="ml-1 fa-regular fa-address-book mr-1"></i> Contacts</strong></h3>
+                                <select id="sort-rule">
+                                    <option value="alphabetical">Alphabetisch</option>
+                                    <option value="funktionspostfachFirst">Funktionspostfach zuerst</option>
+                                    <option value="roleFirst">Bestimmte Rolle zuerst</option>
+                                </select>
                                 <button class="btn btn-light btn-sm ml-auto"
                                         onclick="add_new_contact({{ customer.customer_id }});">Add Contact
                                 </button>
@@ -341,7 +346,9 @@
 {% endblock content %}
 
 {% block javascripts %}
-
+<script>
+    var contacts = {{ contacts | tojson | safe }};
+</script>
 <script src="/static/assets/js/iris/manage.customers.js"></script>
 <script src="/static/assets/js/iris/view.customers.js"></script>
 

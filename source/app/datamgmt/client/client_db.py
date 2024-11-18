@@ -119,7 +119,6 @@ def get_client_api(client_id: str) -> Client:
         output["customer_top"] = Client.query.get(output["customer_id_top"]).name
     else:
         output["customer_top"] = ""
-
     return output
 
 
@@ -144,8 +143,8 @@ def get_client_cases(client_id: int):
 
 def add_nested_contact(org, contact_list):
     template = {
-           "org_name": org.name,
-           "org_short": org.short
+        "org_name": org.name,
+        "org_short": org.short
     }
     if org.top_org:
         template["org_top"] = org.top_org.name
@@ -173,7 +172,6 @@ def export_contacts(current_user_id: int = None,
     return ctx
 
 
-
 def create_client(data) -> Client:
     client_schema = CustomerSchema()
     if not type(data.get("customer_customer")) == str or len(data.get("customer_customer")) == 0:
@@ -188,14 +186,42 @@ def create_client(data) -> Client:
     return client
 
 
+def _strip(data):
+    print(data)
+    return data.contact_role.lower().replace(" ", "").split(",")
+
+
 def get_client_contacts(client_id: int) -> List[Contact]:
     contacts = Contact.query.filter(
         Contact.client_id == client_id
     ).order_by(
         Contact.contact_name
     ).all()
+    contacts_sorted = []
+    print("sorted", contacts)
+    for role in ["ressort-isb", "isb"]:
+        ctx = []
+        for e in contacts:
+            if role in _strip(e):
+                ctx.append(e)
+        f_pf = list(filter(lambda x: len(_strip(x)) == 1
+                                     and x.contact_name == "Funktionspostfach", contacts_sorted))
 
-    return contacts
+        fv_cc = list(filter(lambda x: role in _strip(x) and "cc" in _strip(x)
+                                      and x.contact_name == "Funktionspostfach", contacts_sorted))
+
+        fv_pf = list(filter(lambda x: role in _strip(x)[0] and "vertretung" in _strip(x)
+                                      and len(_strip(x)) == 1
+                                      and x.contact_name == "Funktionspostfach", contacts_sorted))
+
+
+        sonst = [item for item in ctx if item not in f_pf + fv_cc + fv_pf]
+        sonst.sort(key=lambda x: x.contact_name, reverse=True)
+        contacts_sorted += f_pf + fv_cc + fv_pf + sonst
+    all_contacts = [item for item in contacts if item not in contacts_sorted]
+    all_contacts.sort(key=lambda x: x.contact_name, reverse=True)
+
+    return all_contacts
 
 
 def get_client_contact(client_id: int, contact_id: int) -> Contact:

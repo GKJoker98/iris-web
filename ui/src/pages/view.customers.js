@@ -2,6 +2,84 @@ let users_table = null;
 let cases_table = null;
 let assets_table = null;
 
+function delete_contact(contact_id, customer_id) {
+    post_request_api('/manage/customers/' + customer_id + '/contacts/' + contact_id + '/delete', null, true)
+    .done((data) => {
+        if(notify_auto_api(data)) {
+            window.location.reload();
+        }
+    });
+}
+
+$(document).ready(function() {
+    var customerIdTop = $('#top-customer-name')[0].dataset.customerId
+    console.log(customerIdTop);
+    $.ajax({
+        url: '/manage/customers/' + customerIdTop,
+        type: 'GET',
+        success: function(data) {
+    var filteredContacts = data.data.contacts.filter(function(contact) {
+        return contact.contact_name === "Funktionspostfach" && contact.contact_role === "Ressort-ISB";
+    });
+    console.log(filteredContacts);
+    var contactsHTML = filteredContacts.map(function(contact) {
+        return '<b>Email: </b><span class="copy-email">' + contact.contact_email + '</span><br/>'
+    }).join('');
+    $('#additional-info').html(contactsHTML);
+                $('.copy-email').on('click', function() {
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val($(this).text().replace('Email: ', '')).select();
+                document.execCommand("copy");
+                $temp.remove();
+            });
+
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+$(document).ready(function() {
+    $('.copy-email').on('click', function() {
+        var $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val($(this).text()).select();
+        document.execCommand("copy");
+        $temp.remove();
+    });
+});
+
+function sortContacts(contacts, rule) {
+    // Kopieren Sie das Array, um das Original nicht zu verändern
+    let sortedContacts = [...contacts];
+
+    // Anwenden der Sortierregel
+    switch(rule) {
+        case 'alphabetical':
+            sortedContacts.sort((a, b) => a.contact_name.localeCompare(b.contact_name));
+            break;
+        case 'funktionspostfachFirst':
+            sortedContacts.sort((a, b) => {
+                if (a.contact_name === "Funktionspostfach") return -1;
+                if (b.contact_name === "Funktionspostfach") return 1;
+                return a.contact_name.localeCompare(b.contact_name);
+            });
+            break;
+        case 'roleFirst':
+            sortedContacts.sort((a, b) => {
+                if (a.contact_role === "BestimmteRolle") return -1;
+                if (b.contact_role === "BestimmteRolle") return 1;
+                return a.contact_name.localeCompare(b.contact_name);
+            });
+            break;
+        default:
+            console.log("Unbekannte Sortierregel: " + rule);
+    }
+
+    return sortedContacts;
+}
+
 function edit_contact(contact_id, customer_id) {
     url = '/manage/customers/' + customer_id + '/contacts/' + contact_id + '/modal' + case_param();
     $('#modal_add_contact_content').load(url, function (response, status, xhr) {
