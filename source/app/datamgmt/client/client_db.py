@@ -111,8 +111,10 @@ def get_client_cases(client_id: int):
 
 def create_client(data) -> Client:
     client_schema = CustomerSchema()
-    if "customer_customer" in data and type(data["customer_customer"]) == str:
-        data["customer_customer"] = None 
+    if not "customer_customer" in data and not type(data["customer_customer"]) == str:
+        data["customer_customer"] = None
+    else:
+        data["customer_customer"] = int(data["customer_customer"])
     client = client_schema.load(data)
 
     db.session.add(client)
