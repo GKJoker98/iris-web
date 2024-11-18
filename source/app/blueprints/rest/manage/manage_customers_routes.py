@@ -16,15 +16,18 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import datetime
 import traceback
 from flask import Blueprint
+from flask import redirect
+from flask import render_template
 from flask import request
+from flask import url_for
 from flask_login import current_user
+from flask_wtf import FlaskForm
 from marshmallow import ValidationError
 
+import datetime
 from app import ac_current_user_has_permission
-from app.blueprints.access_controls import ac_api_requires
 from app.datamgmt.client.client_db import create_client
 from app.datamgmt.client.client_db import create_contact
 from app.datamgmt.client.client_db import delete_client
@@ -32,30 +35,53 @@ from app.datamgmt.client.client_db import delete_contact
 from app.datamgmt.client.client_db import get_client
 from app.datamgmt.client.client_db import get_client_api
 from app.datamgmt.client.client_db import get_client_cases
+from app.datamgmt.client.client_db import get_client_contact
 from app.datamgmt.client.client_db import get_client_contacts
 from app.datamgmt.client.client_db import get_client_list
 from app.datamgmt.client.client_db import update_client
 from app.datamgmt.client.client_db import update_contact
 from app.datamgmt.exceptions.ElementExceptions import ElementInUseException
 from app.datamgmt.exceptions.ElementExceptions import ElementNotFoundException
+from app.datamgmt.manage.manage_attribute_db import get_default_custom_attributes
 from app.datamgmt.manage.manage_users_db import add_user_to_customer
+from app.forms import AddCustomerForm
+from app.forms import ContactForm
 from app.iris_engine.utils.tracker import track_activity
 from app.models.authorization import Permissions
 from app.schema.marshables import ContactSchema
 from app.schema.marshables import CustomerSchema
-from app.blueprints.access_controls import ac_api_requires_client_access
-from app.blueprints.responses import response_error
-from app.blueprints.responses import response_success
+from app.util import ac_api_requires
+from app.util import ac_api_requires_client_access
+from app.util import ac_requires_client_access
+from app.util import ac_requires
+from app.util import page_not_found
+from app.util import response_error
+from app.util import response_success
 
 manage_customers_rest_blueprint = Blueprint('manage_customers_rest', __name__)
 
 
+
+# CONTENT ------------------------------------------------
+@manage_customers_rest_blueprint.route('/manage/customers')
+@ac_api_requires(Permissions.customers_read, no_cid_required=True)
+def manage_customers(caseid, url_redir):
+    if url_redir:
+        return redirect(url_for('manage_customers.manage_customers', cid=caseid))
+
+    form = AddCustomerForm()
+
+    # Return default page of case management
+    return render_template('manage_customers.html', form=form)
+
+
+
 @manage_customers_rest_blueprint.route('/manage/customers/list', methods=['GET'])
-@ac_api_requires(Permissions.customers_read)
+@ac_api_requires(Permissions.customers_read, no_cid_required=True)
 def list_customers():
-    user_is_server_administrator = ac_current_user_has_permission(Permissions.server_administrator)
+
     client_list = get_client_list(current_user_id=current_user.id,
-                                  is_server_administrator=user_is_server_administrator)
+                                  is_server_administrator=True)
 
     return response_success("", data=client_list)
 
@@ -214,8 +240,33 @@ def get_customer_case_stats(client_id):
     return response_success(data=cases)
 
 
+
+@manage_customers_rest_blueprint.route('/manage/customers/update/<int:client_id>/modal', methods=['GET'])
+@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires_client_access()
+def view_customer_modal(client_id, caseid, url_redir):
+    if url_redir:
+        return redirect(url_for('manage_customers.manage_customers', cid=caseid))
+
+    form = AddCustomerForm()
+    customer = get_client(client_id)
+    if not customer:
+        return response_error("Invalid Customer ID")
+
+    form.customer_name.render_kw = {'value': customer.name}
+    form.customer_description.data = customer.description
+    form.customer_short.data = customer.short
+    form.customer_customer.data = customer.client_id_top
+    
+    customers = get_client_list(current_user_id=current_user.id,
+                                                is_server_administrator=True)
+
+    return render_template("modal_add_customer.html", form=form, customer=customer, customers=customers,
+                           attributes=customer.custom_attributes)
+
+
 @manage_customers_rest_blueprint.route('/manage/customers/update/<int:client_id>', methods=['POST'])
-@ac_api_requires(Permissions.customers_write)
+@ac_api_requires(Permissions.customers_write, no_cid_required=True)
 @ac_api_requires_client_access()
 def view_customers(client_id):
     if not request.is_json:
@@ -238,9 +289,24 @@ def view_customers(client_id):
     return response_success("Customer updated", client_schema.dump(client))
 
 
+@manage_customers_rest_blueprint.route('/manage/customers/add/modal', methods=['GET'])
+@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires_client_access()
+def add_customers_modal(caseid, url_redir):
+    if url_redir:
+        return redirect(url_for('manage_customers.manage_customers', cid=caseid))
+    form = AddCustomerForm()
+    attributes = get_default_custom_attributes('client')
+    
+    customers = get_client_list(current_user_id=current_user.id,
+                                                is_server_administrator=True)
+    return render_template("modal_add_customer.html", form=form, customer=None, customers=customers, attributes=attributes)
+
+
 @manage_customers_rest_blueprint.route('/manage/customers/add', methods=['POST'])
-@ac_api_requires(Permissions.customers_write)
-def add_customers():
+@ac_api_requires(Permissions.customers_write, no_cid_required=True)
+@ac_api_requires_client_access()
+def add_customers(caseid):
     if not request.is_json:
         return response_error("Invalid request")
 

@@ -67,14 +67,26 @@ $(document).ready(function() {
                     }
                 },
                 {
-                    "data": "customer_id",
+
+                    "data": "customer_short",
                     "render": function (data, type, row) {
                         if (type === 'display') {
-                            return sanitizeHTML(data);
+                            data = sanitizeHTML(data);
+                            return '<a href="/manage/customers/' + row['customer_id'] + '/view'+ cid +'">' + data + '</a>';
                         }
                         return data;
                     }
-                },
+		},
+                {
+                    "data": "customer_top",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            data = sanitizeHTML(data);
+                            return '<a href="/manage/customers/' + row['customer_id_top'] + '/view'+ cid +'">' + data + '</a>';
+                        }
+                        return data;
+                    }
+		},
                 {
                     "data": "customer_description",
                     "render": function (data, type, row) {

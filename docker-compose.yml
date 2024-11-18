@@ -16,6 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 services:
+
   rabbitmq:
     extends:
       file: docker-compose.base.yml
@@ -49,7 +50,7 @@ volumes:
   iris-downloads:
   user_templates:
   server_data:
-  db_data:
+  db_data4:
 
 networks:
   iris_backend:
