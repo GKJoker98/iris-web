@@ -46,6 +46,7 @@ def get_client_list(current_user_id: int = None,
         Client.description.label('customer_description'),
         Client.custom_attributes,
         Client.short.label('customer_short'),
+        Client.client_search_terms.label('customer_search_terms'),
         Client.client_id_top.label('customer_id_top')
     ).filter(
         filter
@@ -107,6 +108,7 @@ def get_client_api(client_id: str) -> Client:
         Client.description.label('customer_description'),
         Client.custom_attributes,
         Client.short.label('customer_short'),
+        Client.client_search_terms.label('customer_search_terms'),
         Client.client_id_top.label('customer_id_top')
     ).filter(Client.client_id == client_id).first()
 

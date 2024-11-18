@@ -1807,15 +1807,18 @@ class CustomerSchema(ma.SQLAlchemyAutoSchema):
     customer_id: int = auto_field('client_id')
 
     customer_customer: int = auto_field('client_id_top', required=False)
+    customer_search_terms: Optional[str] = auto_field('client_search_terms', allow_none=True)
     csrf_token: Optional[str] = fields.String(required=False)
 
 
     class Meta:
         model = Client
         load_instance = True
+
         unknown = EXCLUDE
 
-        exclude = ['name', 'client_id', 'description', 'short']
+        exclude = ['name', 'client_id', 'description', 'short', 'client_search_terms']
+
 
 
     @post_load

@@ -138,8 +138,7 @@ class Client(db.Model):
     created_by = Column(ForeignKey('user.id'), nullable=True)
     last_update_date = Column(DateTime, server_default=func.now(), nullable=True)
     client_id_top = Column(ForeignKey('client.client_id'), nullable=True)
-
-
+    client_search_terms = Column(Text)
     custom_attributes = Column(JSON)
     #client_top = relationship('Client', backref=db.backref('top', remote_side=[client_id]))
     children_orgs = relationship("Client", foreign_keys=[client_id_top], backref=db.backref("top_org", remote_side=[client_id]))
