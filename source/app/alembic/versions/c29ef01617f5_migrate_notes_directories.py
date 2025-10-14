@@ -19,6 +19,7 @@ depends_on = None
 
 
 def upgrade():
+
     if not _table_has_column('notes', 'directory_id'):
         metadata = MetaData()
 

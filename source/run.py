@@ -16,9 +16,14 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import logging
+import os
 
 from app import app
 from app import socket_io
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
 
 if __name__ != '__main__':
     gunicorn_logger = logging.getLogger('gunicorn.error')

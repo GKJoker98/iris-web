@@ -12,6 +12,8 @@
 </p>
 
 # IRIS
+docker compose -f docker-compose.dev.yml up db
+
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](./LICENSE.txt)   
 Iris is a web collaborative platform aiming to help incident responders sharing technical details during investigations. 

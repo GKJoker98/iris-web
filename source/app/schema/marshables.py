@@ -1716,14 +1716,21 @@ class CustomerSchema(ma.SQLAlchemyAutoSchema):
     """
     customer_name: str = auto_field('name', required=True, validate=Length(min=2), allow_none=False)
     customer_description: Optional[str] = auto_field('description', allow_none=True)
-    customer_sla: Optional[str] = auto_field('sla', allow_none=True)
+    customer_short: Optional[str] = auto_field('short', allow_none=True)
     customer_id: int = auto_field('client_id')
+    customer_customer: int = auto_field('client_id_top', required=False)
+    customer_search_terms: Optional[str] = auto_field('client_search_terms', allow_none=True)
+    customer_binnenmarkt: bool = auto_field('binnenmarkt', allow_none=False)
+
+    csrf_token: Optional[str] = fields.String(required=False)
+
 
     class Meta:
         model = Client
         load_instance = True
-        exclude = ['name', 'client_id', 'description', 'sla']
         unknown = EXCLUDE
+        exclude = ['name', 'client_id', 'description', 'short', 'client_search_terms', 'binnenmarkt']
+
 
     @post_load
     def verify_unique(self, data: Client, **kwargs: Any) -> Client:

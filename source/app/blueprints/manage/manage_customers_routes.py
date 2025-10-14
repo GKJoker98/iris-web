@@ -39,6 +39,7 @@ from app.datamgmt.client.client_db import get_client_cases
 from app.datamgmt.client.client_db import get_client_contact
 from app.datamgmt.client.client_db import get_client_contacts
 from app.datamgmt.client.client_db import get_client_list
+from app.datamgmt.client.client_db import get_contact_list
 from app.datamgmt.client.client_db import update_client
 from app.datamgmt.client.client_db import update_contact
 from app.datamgmt.exceptions.ElementExceptions import ElementInUseException
@@ -59,6 +60,8 @@ from app.util import page_not_found
 from app.util import response_error
 from app.util import response_success
 
+from app.datamgmt.client.client_db import export_contacts
+
 manage_customers_blueprint = Blueprint(
     'manage_customers',
     __name__,
@@ -68,7 +71,7 @@ manage_customers_blueprint = Blueprint(
 
 # CONTENT ------------------------------------------------
 @manage_customers_blueprint.route('/manage/customers')
-@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires(Permissions.customers_read)
 def manage_customers(caseid, url_redir):
     if url_redir:
         return redirect(url_for('manage_customers.manage_customers', cid=caseid))
@@ -82,10 +85,17 @@ def manage_customers(caseid, url_redir):
 @manage_customers_blueprint.route('/manage/customers/list')
 @ac_api_requires(Permissions.customers_read)
 def list_customers():
-    user_is_server_administrator = ac_current_user_has_permission(Permissions.server_administrator)
     client_list = get_client_list(current_user_id=current_user.id,
-                                  is_server_administrator=user_is_server_administrator)
+                                  is_server_administrator=True)
 
+    return response_success("", data=client_list)
+
+
+@manage_customers_blueprint.route('/manage/contacts/list')
+@ac_api_requires(Permissions.customers_read)
+def list_contacts():
+    client_list = get_contact_list(current_user_id=current_user.id,
+                                  is_server_administrator=True)
     return response_success("", data=client_list)
 
 
@@ -95,20 +105,26 @@ def list_customers():
 def view_customer(client_id):
 
     customer = get_client_api(client_id)
-
     customer['contacts'] = ContactSchema().dump(get_client_contacts(client_id), many=True)
 
     return response_success(data=customer)
 
+@manage_customers_blueprint.route('/manage/customers/export', methods=['GET'])
+@ac_api_requires(Permissions.customers_read)
+def export_customers():
+    customer = export_contacts(current_user_id=current_user.id,
+                                                is_server_administrator=True)
+    return response_success(data=customer)
 
+#@ac_requires_client_access()
 @manage_customers_blueprint.route('/manage/customers/<int:client_id>/view', methods=['GET'])
-@ac_requires(Permissions.customers_read, no_cid_required=True)
-@ac_requires_client_access()
+@ac_requires(Permissions.customers_read)
 def view_customer_page(client_id, caseid, url_redir):
     if url_redir:
         return redirect(url_for('manage_customers.manage_customers', cid=caseid))
 
     customer = get_client_api(client_id)
+
     if not customer:
         return page_not_found(None)
 
@@ -116,11 +132,11 @@ def view_customer_page(client_id, caseid, url_redir):
     contacts = get_client_contacts(client_id)
     contacts = ContactSchema().dump(contacts, many=True)
 
-    return render_template('manage_customer_view.html', customer=customer, form=form, contacts=contacts)
+    return render_template('manage_customer_view.html', **customer, form=form, contacts=contacts)
 
 
 @manage_customers_blueprint.route('/manage/customers/<int:client_id>/contacts/add/modal', methods=['GET'])
-@ac_requires(Permissions.customers_write, no_cid_required=True)
+@ac_requires(Permissions.customers_write)
 @ac_requires_client_access()
 def customer_add_contact_modal(client_id, caseid, url_redir):
     if url_redir:
@@ -132,7 +148,7 @@ def customer_add_contact_modal(client_id, caseid, url_redir):
 
 
 @manage_customers_blueprint.route('/manage/customers/<int:client_id>/contacts/<int:contact_id>/modal', methods=['GET'])
-@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires(Permissions.customers_read)
 @ac_requires_client_access()
 def customer_edit_contact_modal(client_id, contact_id, caseid, url_redir):
     if url_redir:
@@ -211,11 +227,12 @@ def customer_add_contact(client_id):
     return response_success("Added successfully", data=contact_schema.dump(contact))
 
 
+#@ac_api_requires_client_access()
 @manage_customers_blueprint.route('/manage/customers/<int:client_id>/cases', methods=['GET'])
 @ac_api_requires(Permissions.customers_read)
 @ac_api_requires_client_access()
 def get_customer_case_stats(client_id):
-
+    print("hellowtf")
     cases = get_client_cases(client_id)
     cases_list = []
 
@@ -296,7 +313,7 @@ def get_customer_case_stats(client_id):
 
 
 @manage_customers_blueprint.route('/manage/customers/update/<int:client_id>/modal', methods=['GET'])
-@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires(Permissions.customers_read)
 @ac_requires_client_access()
 def view_customer_modal(client_id, caseid, url_redir):
     if url_redir:
@@ -309,9 +326,15 @@ def view_customer_modal(client_id, caseid, url_redir):
 
     form.customer_name.render_kw = {'value': customer.name}
     form.customer_description.data = customer.description
-    form.customer_sla.data = customer.sla
+    form.customer_short.data = customer.short
+    form.customer_search_terms.data = customer.client_search_terms
+    form.customer_binnenmarkt.data = customer.binnenmarkt
+    form.customer_customer.data = customer.client_id_top
+    
+    customers = get_client_list(current_user_id=current_user.id,
+                                                is_server_administrator=True)
 
-    return render_template("modal_add_customer.html", form=form, customer=customer,
+    return render_template("modal_add_customer.html", form=form, customer=customer, customers=customers,
                            attributes=customer.custom_attributes)
 
 
@@ -340,13 +363,16 @@ def view_customers(client_id):
 
 
 @manage_customers_blueprint.route('/manage/customers/add/modal', methods=['GET'])
-@ac_requires(Permissions.customers_read, no_cid_required=True)
+@ac_requires(Permissions.customers_read)
 def add_customers_modal(caseid, url_redir):
     if url_redir:
         return redirect(url_for('manage_customers.manage_customers', cid=caseid))
     form = AddCustomerForm()
     attributes = get_default_custom_attributes('client')
-    return render_template("modal_add_customer.html", form=form, customer=None, attributes=attributes)
+    
+    customers = get_client_list(current_user_id=current_user.id,
+                                                is_server_administrator=True)
+    return render_template("modal_add_customer.html", form=form, customer=None, customers=customers, attributes=attributes)
 
 
 @manage_customers_blueprint.route('/manage/customers/add', methods=['POST'])

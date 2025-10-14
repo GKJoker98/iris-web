@@ -119,6 +119,7 @@ def run_post_init(development=False):
     log.info(f'IRIS {app.config.get("IRIS_VERSION")}')
     log.info("Running post initiation steps")
 
+
     if os.getenv("IRIS_WORKER") is None:
         create_directories()
 
@@ -127,6 +128,7 @@ def run_post_init(development=False):
         for i in range(retry_count):
             log.info("Connecting to database, attempt " + str(i+1) + "/" + str(retry_count))
             conn = connect_to_database(db_host, db_port)
+
             if conn:
                 break
             log.info("Retrying in " + str(retry_delay) + "seconds...")
@@ -238,14 +240,14 @@ def run_post_init(development=False):
                 register_default_modules()
 
             log.info("Creating initial customer")
-            client = create_safe_client()
+            #client = create_safe_client()
 
             log.info("Creating initial case")
-            create_safe_case(
-                user=admin,
-                client=client,
-                groups=[gadm, ganalysts]
-            )
+            #create_safe_case(
+            #    user=admin,
+            #    client=client,
+            #    groups=[gadm, ganalysts]
+            #)
 
             # Setup symlinks for custom_assets
             log.info("Creating symlinks for custom asset icons")

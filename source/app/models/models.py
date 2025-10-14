@@ -134,13 +134,27 @@ class Client(db.Model):
     client_uuid = Column(UUID(as_uuid=True), server_default=text("gen_random_uuid()"), nullable=False)
     name = Column(Text, unique=True)
     description = Column(Text)
-    sla = Column(Text)
+    short = Column(Text)
     creation_date = Column(DateTime, server_default=func.now(), nullable=True)
     created_by = Column(ForeignKey('user.id'), nullable=True)
     last_update_date = Column(DateTime, server_default=func.now(), nullable=True)
-
+    client_id_top = Column(ForeignKey('client.client_id'), nullable=True)
+    client_search_terms = Column(Text)
+    binnenmarkt = Column(Boolean, nullable=True, default=False)
     custom_attributes = Column(JSON)
+    #client_top = relationship('Client', backref=db.backref('top', remote_side=[client_id]))
+    client_top = relationship(
+        'Client',
+        remote_side=[client_id],
+        foreign_keys=[client_id_top],
+        back_populates='children_orgs'
+    )
 
+    children_orgs = relationship(
+        'Client',
+        foreign_keys=[client_id_top],
+        back_populates='client_top'
+    )
 
 class AssetsType(db.Model):
     __tablename__ = 'assets_type'

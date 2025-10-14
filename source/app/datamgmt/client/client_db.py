@@ -17,7 +17,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import marshmallow
 from sqlalchemy import func, and_
-from typing import List
+from typing import List, Optional, Dict
 
 from app import db
 from app.datamgmt.exceptions.ElementExceptions import ElementInUseException
@@ -39,19 +39,62 @@ def get_client_list(current_user_id: int = None,
         )
     else:
         filter = and_()
-
     client_list = Client.query.with_entities(
         Client.name.label('customer_name'),
         Client.client_id.label('customer_id'),
         Client.client_uuid.label('customer_uuid'),
         Client.description.label('customer_description'),
-        Client.sla.label('customer_sla'),
-        Client.custom_attributes
+
+        Client.custom_attributes,
+
+        Client.short.label('customer_short'),
+        Client.client_search_terms.label('customer_search_terms'),
+        Client.client_id_top.label('customer_id_top'),
+        Client.binnenmarkt.label('customer_binnenmarkt')
+
     ).filter(
         filter
     ).all()
+    output = []
+    for c in client_list:
+        ctx = c._asdict()
+        if ctx["customer_id_top"]:
+            ctx["customer_top"] = Client.query.get(ctx["customer_id_top"]).name
+        else:
+            ctx["customer_top"] = ""
+        output.append(ctx)
 
-    output = [c._asdict() for c in client_list]
+    return output
+
+
+def get_contact_list(current_user_id: int = None,
+                     is_server_administrator: bool = False) -> List[dict]:
+    if not is_server_administrator:
+        filter = and_(
+            Client.client_id == UserClient.client_id,
+            UserClient.user_id == current_user_id
+        )
+    else:
+        filter = and_()
+
+    contact_list = Contact.query.with_entities(
+        Contact.contact_name.label('contact_name'),
+        Contact.id.label('contact_id'),
+        Contact.contact_uuid.label('contact_uuid'),
+        Contact.contact_role.label('contact_role'),
+        Contact.contact_email.label('contact_email'),
+        Contact.client_id.label('contact_client_id'),
+    ).filter(
+        filter
+    ).all()
+    output = []
+    for c in contact_list:
+        ctx = c._asdict()
+        if ctx["contact_client_id"]:
+            ctx["contact_client"] = Client.query.get(ctx["contact_client_id"]).name
+        else:
+            ctx["contact_client"] = ""
+        output.append(ctx)
 
     return output
 
@@ -61,22 +104,57 @@ def get_client(client_id: int) -> Client:
     return client
 
 
-def get_client_api(client_id: str) -> Client:
-    client = Client.query.with_entities(
-        Client.name.label('customer_name'),
-        Client.client_id.label('customer_id'),
-        Client.client_uuid.label('customer_uuid'),
-        Client.description.label('customer_description'),
-        Client.sla.label('customer_sla'),
-        Client.custom_attributes
-    ).filter(Client.client_id == client_id).first()
+def client_to_dict(client: Client):
+    return {
+        "customer_name": client.name,
+        "customer_id": client.client_id,
+        "customer_uuid": client.client_uuid,
+        "customer_description": client.description,
+        "custom_attributes": client.custom_attributes,
+        "customer_short": client.short,
+        "customer_binnenmarkt": client.binnenmarkt,
+        "customer_search_terms": client.client_search_terms,
+        "customer_id_top": client.client_id_top,
+    }
 
-    output = None
-    if client:
-        output = client._asdict()
+def get_contacts_for_customers(customer_ids: list[int]) -> dict[int, list[dict]]:
+    contacts = Contact.query.filter(Contact.client_id.in_(customer_ids)).all()
+    
+    contacts_dict = {}
+    for contact in contacts:
+        contact_info = {
+            "contact_name": contact.contact_name,
+            "contact_email": contact.contact_email,
+            "contact_role": contact.contact_role,
+        }
+        contacts_dict.setdefault(contact.client_id, []).append(contact_info)
+    
+    return contacts_dict
 
-    return output
+def build_chain(client: Client):
+    if client.client_id_top:
+        parent = Client.query.get(client.client_id_top)
+        if parent:
+            return build_chain(parent) + [client_to_dict(parent)]
+    return []
 
+def get_client_api(client_id: str) -> dict:
+    client = Client.query.get(client_id)
+    if not client:
+        return None
+
+    client_dict = client_to_dict(client)
+    chain = build_chain(client)  # enthält nur übergeordnete Clients
+
+    # Optional: Kontakte aus der Chain holen (falls weiterhin gebraucht)
+    customer_ids = [c["customer_id"] for c in chain]
+    customer_contacts = get_contacts_for_customers(customer_ids)
+
+    return {
+        "customer": client_dict,
+        "customer_chain": chain,
+        "customer_contacts": customer_contacts
+    }
 
 def get_client_cases(client_id: int):
     cases_list = Cases.query.with_entities(
@@ -97,9 +175,48 @@ def get_client_cases(client_id: int):
     return cases_list
 
 
-def create_client(data) -> Client:
+def add_nested_contact(org, contact_list):
+    template = {
+           "org_name": org.name,
+           "org_short": org.short,
+           "org_binnenmarkt": org.binnenmarkt
+    }
+    print(org)
+    print(dir(org))
+    print(org.client_top)
+    if org.client_top:
+        template["org_top"] = org.client_top.name
+        template["org_top_short"] = org.client_top.short
+    contacts = get_client_contacts(org.client_id)
+    for contact in contacts:
+        ctx = dict(template)
+        ctx["contact_role"] = contact.contact_role
+        ctx["contact_email"] = contact.contact_email
+        ctx["contact_note"] = contact.contact_note
+        ctx["contact_work_phone"] = contact.contact_work_phone
+        ctx["contact_mobile_phone"] = contact.contact_mobile_phone
+        ctx["contact_name"] = contact.contact_name
+        contact_list.append(ctx)
+    for e in org.children_orgs:
+        add_nested_contact(e, contact_list)
 
+
+def export_contacts(current_user_id: int = None,
+                    is_server_administrator: bool = False):
+    orgs = Client.query.filter(Client.client_id_top == None).all()
+    ctx = []
+    for e in orgs:
+        add_nested_contact(e, ctx)
+    return ctx
+
+
+
+def create_client(data) -> Client:
     client_schema = CustomerSchema()
+    if not type(data.get("customer_customer")) == str or len(data.get("customer_customer")) == 0:
+        data["customer_customer"] = None
+    else:
+        data["customer_customer"] = int(data["customer_customer"])
     client = client_schema.load(data)
 
     db.session.add(client)
@@ -169,10 +286,15 @@ def update_contact(data, contact_id, customer_id) -> Contact:
 def update_client(client_id: int, data) -> Client:
     # TODO: Possible reuse somewhere else ...
     client = get_client(client_id)
-
+    if not "customer_binnenmarkt" in data:
+        data["customer_binnenmarkt"] = False
     if not client:
         raise ElementNotFoundException('No Customer found with this uuid.')
 
+    if not type(data.get("customer_customer")) == str or len(data.get("customer_customer")) == 0:
+        data["customer_customer"] = None
+    else:
+        data["customer_customer"] = int(data["customer_customer"])
     exists = Client.query.filter(
         Client.client_id != client_id,
         func.lower(Client.name) == data.get('customer_name').lower()

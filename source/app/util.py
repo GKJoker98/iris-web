@@ -678,6 +678,10 @@ def ac_api_requires_client_access():
     def inner_wrap(f):
         @wraps(f)
         def wrap(*args, **kwargs):
+            ## CDC
+            ## Client access not relevant
+            return f(*args, **kwargs)
+
             client_id = kwargs.get('client_id')
             if not user_has_client_access(current_user.id, client_id):
                 return response_error("Permission denied", status=403)
