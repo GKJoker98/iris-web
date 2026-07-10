@@ -466,7 +466,7 @@ function handle_ed_paste(event) {
     filename = null;
     const { items } = event.originalEvent.clipboardData;
     for (let i = 0; i < items.length; i += 1) {
-      const item = items[i]; 
+      const item = items[i];
 
       if (item.kind === 'string') {
         item.getAsString(function (s){
@@ -476,7 +476,7 @@ function handle_ed_paste(event) {
 
       if (item.kind === 'file') {
         const blob = item.getAsFile();
-		
+
         if (blob !== null) {
             const reader = new FileReader();
             reader.onload = (e) => {

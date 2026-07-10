@@ -33,6 +33,7 @@ from app.blueprints.context.context import ctx_blueprint
 from app.blueprints.graphql.graphql_route import graphql_blueprint
 from app.blueprints.dashboard.dashboard_routes import dashboard_blueprint
 from app.blueprints.datastore.datastore_routes import datastore_blueprint
+from app.blueprints.custom_dashboard.custom_dashboard_routes import custom_dashboard_blueprint
 from app.blueprints.demo_landing.demo_landing import demo_blueprint
 from app.blueprints.dim_tasks.dim_tasks import dim_tasks_blueprint
 from app.blueprints.filters.filters_routes import saved_filters_blueprint
@@ -65,6 +66,7 @@ from app.blueprints.overview.overview_routes import overview_blueprint
 from app.blueprints.profile.profile_routes import profile_blueprint
 from app.blueprints.reports.reports_route import reports_blueprint
 from app.blueprints.search.search_routes import search_blueprint
+from app.blueprints.statistics.statistics_routes import stats_blueprint
 from app.models.authorization import User
 from app.post_init import run_post_init
 
@@ -108,6 +110,8 @@ app.register_blueprint(activities_blueprint)
 app.register_blueprint(dim_tasks_blueprint)
 app.register_blueprint(datastore_blueprint)
 app.register_blueprint(alerts_blueprint)
+app.register_blueprint(stats_blueprint)
+app.register_blueprint(custom_dashboard_blueprint)
 
 app.register_blueprint(api_blueprint)
 app.register_blueprint(demo_blueprint)
